@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.qxs.generator.web.controller.LicenseController;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -30,8 +29,8 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.qxs.generator.web.GeneratorApplication;
-import com.qxs.generator.web.controller.HelpController;
 import com.qxs.generator.web.controller.InitWizardController;
+import com.qxs.generator.web.controller.LicenseController;
 import com.qxs.generator.web.controller.LoginController;
 import com.qxs.generator.web.controller.captcha.geetest.CaptchaGeetestController;
 import com.qxs.generator.web.controller.user.ForgetPasswordController;
@@ -83,8 +82,7 @@ public class LogAccessAspect {
 				joinPoint.getTarget().getClass().equals(ForgetPasswordController.class) ||
 				joinPoint.getTarget().getClass().equals(InitWizardController.class) ||
 				joinPoint.getTarget().getClass().equals(UserActiveController.class) ||
-				joinPoint.getTarget().getClass().equals(LicenseController.class) ||
-				joinPoint.getTarget().getClass().equals(HelpController.class)) {
+				joinPoint.getTarget().getClass().equals(LicenseController.class)) {
 			try {
 				return joinPoint.proceed();
 			} catch (Throwable e) {

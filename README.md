@@ -27,4 +27,4 @@ plugin:
 ___注：参考code_generator/generator_plugin下的插件___
 
 ### 三、帮助手册
-请启动系统查看帮助
+参见wiki

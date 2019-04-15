@@ -25,6 +25,7 @@
 				<div style="margin-right: 30px;float: right;height:20px;">
 					<div style="float: left;"><span>您好，</span><a class="userInfo" href="javascript:void(0)"><span class="name" th:text="${#authentication.principal.name}" th:title="${#authentication.principal.username}">用户姓名</span></a></div>
 					<div style="float: left;"><a class="logout" href="javascript:void(0)">[退出]</a></div>
+					<div style="float: left;"><a target="_blank" href="https://github.com/qixs/code_generator/wiki">[帮助]</a></div>
 				</div>
 			</div>
 		</div>
@@ -90,15 +91,6 @@
 					</div>
 					<div id="license" class="panel-collapse collapse-body collapse">
 						<div class="left-col"><a th:href="@{/license/index}">协议</a></div>
-						<div class="clear"></div>
-					</div>
-				</div>
-				<div class="panel nav-left">
-					<div class="collapse-title collapsed" data-toggle="collapse" data-parent="#accordion" data-target="#help">
-						帮助中心
-					</div>
-					<div id="help" class="panel-collapse collapse-body collapse">
-						<div class="left-col"><a th:href="@{/help/index}">帮助中心</a></div>
 						<div class="clear"></div>
 					</div>
 				</div>
