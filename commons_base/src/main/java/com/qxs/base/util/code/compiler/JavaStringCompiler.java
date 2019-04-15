@@ -10,12 +10,17 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * In-memory compile Java source code as String.
  * 
  * @author michael
  */
 public class JavaStringCompiler {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(JavaStringCompiler.class);
 
 	private static final List<String> OPTIONS = new ArrayList<>();
 
@@ -24,6 +29,10 @@ public class JavaStringCompiler {
 
 	public JavaStringCompiler() {
 		this.compiler = ToolProvider.getSystemJavaCompiler();
+		if(compiler == null) {
+			LOGGER.error("未找到tools.jar文件，可能是因为当前运行时环境是JRE，请先复制tools.jar文件到当前运行时环境下，tools.jar文件地址：JAVA_HOME/lib/tools.jar，复制的地址：JRE_HOME/lib/tools.jar");
+			System.exit(0);
+		}
 		this.stdManager = compiler.getStandardFileManager(null, null, null);
 	}
 
