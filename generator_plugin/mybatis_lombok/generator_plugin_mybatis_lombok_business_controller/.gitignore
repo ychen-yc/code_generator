@@ -1,1 +1,5 @@
 /target/
+/.settings/
+/commons_base.iml
+/.classpath
+/.project

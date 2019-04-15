@@ -5,3 +5,6 @@
 /.project
 /logs/
 /src/main/resources/plugins/
+code_generator.db
+code_generator.db-shm
+code_generator.db-wal
