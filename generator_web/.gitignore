@@ -1,0 +1,7 @@
+/target/
+/.settings/
+/commons_base.iml
+/.classpath
+/.project
+/logs/
+/src/main/resources/plugins/
