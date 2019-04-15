@@ -7,17 +7,39 @@
 <meta http-equiv="Cache-Control" content="no-store" />
 <meta http-equiv="Expires" content="0" />
 
+<link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"/>
 <title>代码生成器</title>
 
 </head>
-<body>
-	章节一：初始化
-	章节二：用户管理
-		1。 用户管理
-		2。 用户插件管理
-	章节三：插件管理
-	章节四：日志管理
-	章节五：系统参数
+<body style="padding: 20px;">
+	<div>
+		<h4>章节一：初始化</h4>
+		<h5>1. 配置邮件服务器</h5>
+		<div>
+			<div>系统会使用该邮箱发送通知，需要先配置邮箱用户名、密码及发件服务器，配置完之后需要先发送一封测试邮件，确保发件服务器配置正确。</div>
+			<div>126邮箱发件服务器：smtp.126.com</div>
+			<div>163邮箱发件服务器：smtp.163.com</div>
+			<div>qq邮箱发件服务器：smtp.qq.com</div>
+			<img alt="邮件服务器配置" style="max-width:400px;" th:src="@{/images/help/init/email.jpg}">
+		</div>
+		<h5>2. 设置超级用户</h5>
+		<h5>3. 选择启用插件</h5>
+		<h5>4. 配置Geetest</h5>
+	</div>
+	<div>
+		<h4>章节二：用户管理</h4>
+		<h5>1. 用户管理</h5>
+		<h5>2. 用户插件管理</h5>
+	</div>
+	<div>
+		<h4>章节三：插件管理</h4>
+	</div>
+	<div>
+		<h4>章节四：日志管理</h4>
+	</div>
+	<div>
+		<h4>章节五：系统参数</h4>
+	</div>
 </body>
 
 <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>

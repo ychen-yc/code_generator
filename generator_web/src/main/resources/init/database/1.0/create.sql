@@ -237,7 +237,7 @@ CREATE TABLE "config_email" (
   PRIMARY KEY ("id")
 );
 
-INSERT INTO "config_email" VALUES (1, '', '', '', 0, 1);
+INSERT INTO "config_email" VALUES (1, '', '', '', 25, 0);
 
 CREATE TABLE "config_geetest" (
   "id" text NOT NULL,

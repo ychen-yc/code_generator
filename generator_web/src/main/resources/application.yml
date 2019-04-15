@@ -56,7 +56,7 @@ spring.security:
     name: admin
     password: admin
   basic.enabled: false
-  permitUrls: /**/*.jpg,/**/*.JPG,/**/*.jpeg,/**/*.JPEG,/**/*.png,/**/*.PNG,/**/*.gif,/**/*.GIF,/**/*.bmp,/**/*.BMP,/**/*.ico,/**/*.ICO,/favicon.ico,/**/*.css,/**/*.css.map,/**/*.js,/**/*.css?v=**,/**/*.js?v=**,/**/fonts/glyphicons-halflings-regular.*,/captcha/geetest/register,/forgetPassword,/forgetPassword/**,/user/admin,/init/wizard/**,/error,/**/js-pushlet-net.html,/pushlet,/checkInitializing,/user/active/**,/license/**
+  permitUrls: /**/*.jpg,/**/*.JPG,/**/*.jpeg,/**/*.JPEG,/**/*.png,/**/*.PNG,/**/*.gif,/**/*.GIF,/**/*.bmp,/**/*.BMP,/**/*.ico,/**/*.ICO,/favicon.ico,/**/*.css,/**/*.css.map,/**/*.js,/**/*.css?v=**,/**/*.js?v=**,/**/fonts/glyphicons-halflings-regular.*,/captcha/geetest/register,/forgetPassword,/forgetPassword/**,/user/admin,/init/wizard/**,/error,/**/js-pushlet-net.html,/pushlet,/checkInitializing,/user/active/**,/license/**,/help/index
   
 #开发阶段禁用缓存
 spring.thymeleaf: 
