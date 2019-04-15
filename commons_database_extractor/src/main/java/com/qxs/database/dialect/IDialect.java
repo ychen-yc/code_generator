@@ -17,13 +17,6 @@ import com.qxs.database.model.Table;
  */
 public interface IDialect {
 	
-	/**
-	 * 修改时区
-	 * @param connection 数据库连接
-	 * @return void
-	 * **/
-	void setTimeZone(Connection connection) throws SQLException;
-	
 	/***
 	 * 获取所有库名
 	 * @param connection 数据库连接

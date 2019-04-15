@@ -69,14 +69,6 @@ public class MariaDBDialect extends AbstractDialect {
 	}
 	
 	@Override
-	public void setTimeZone(Connection connection) throws SQLException{
-		SqlRunner sqlRunner = new SqlRunner(connection);
-		String timeZone = getTimeZone();
-		//设置时区
-		sqlRunner.run("SET GLOBAL time_zone='"+ timeZone +"'");
-	}
-	
-	@Override
 	public List<Database> getDatabases(Connection connection, String databaseVersion) throws SQLException {
 		SqlRunner sqlRunner = new SqlRunner(connection);
 		List<Map<String, Object>> list = sqlRunner.selectAll(SQL_DATABASE);

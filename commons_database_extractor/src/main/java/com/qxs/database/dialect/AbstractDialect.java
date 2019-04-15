@@ -41,11 +41,6 @@ public abstract class AbstractDialect implements IDialect {
 		throw new UnsupportedOperationException("不支持的方法");
 	}
 	
-	@Override
-	public void setTimeZone(Connection connection) throws SQLException {
-		//mysql需要设置时区,如果需要设置时区需要复写该方法
-	}
-
 	/**
 	 * 获取所有表名称列表查询sql
 	 * @return String 

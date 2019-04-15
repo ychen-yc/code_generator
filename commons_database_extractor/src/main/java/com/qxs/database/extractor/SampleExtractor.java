@@ -82,13 +82,6 @@ public class SampleExtractor implements IExtractor{
 			
 			logger.debug("数据库方言:{}",dialect.getClass().getName());
 			
-			//先解决时区的问题,mysql需要先修改时区再重新连接
-			dialect.setTimeZone(connection);
-			connection.close();
-			
-			//重新获取连接
-			connection = dataSource.getConnection();
-			
 			return dialect.getDatabases(connection, databaseVersion);
 		}finally {
 			try {
