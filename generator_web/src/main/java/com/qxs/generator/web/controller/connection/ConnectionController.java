@@ -83,27 +83,42 @@ public class ConnectionController {
 	 * **/
 	@GetMapping("/index/database")
 	public String database(Connection connection,Model model) {
+		List<DatabaseType> databaseTypeList = DatabaseTypeConfig.getDatabaseTypeConfig();
 		
-		model.addAttribute("databaseTypes", DatabaseTypeConfig.getDatabaseTypeConfig());
-		List<DatabaseName> databaseNames = null;
-		if(StringUtils.isEmpty(connection.getId())) {
-			DatabaseType databaseType = DatabaseTypeConfig.getDatabaseType(DatabaseTypeConfig.getDatabaseTypeConfig().get(0).getDbType());
-			Database database = new Database();
-			database.setUrl("localhost");
-			database.setPort(databaseType.getPort());
-			database.setUsername(databaseType.getUsername());
-			
-			model.addAttribute("database", database);
-			
-			databaseNames = Lists.newArrayList(new DatabaseName(null, "请先录入数据库地址", null));
-		}else {
-			Database database = databaseService.findByConnection(connection);
-			model.addAttribute("database", database);
-			
-			databaseNames = databaseService.findDatabaseNameList(
-					database, sshService.findByConnection(connection));
+		Database database = null;
+		if(StringUtils.hasLength(connection.getId())) {
+			database = databaseService.findByConnection(connection);
 		}
-		model.addAttribute("databaseNames", databaseNames);
+		
+		DatabaseType databaseType = DatabaseTypeConfig.getDatabaseType(database == null ? databaseTypeList.get(0).getDbType() : database.getType());
+		model.addAttribute("databaseTypes", databaseTypeList);
+		model.addAttribute("databaseType", databaseType);
+		
+		if(DatabaseTypeConfig.WidgetType.SELECT.equals(databaseType.getDatabaseWidgetType())) {
+			List<DatabaseName> databaseNames = null;
+			if(StringUtils.isEmpty(connection.getId())) {
+				database = new Database();
+				database.setUrl("localhost");
+				database.setPort(databaseType.getPort());
+				database.setUsername(databaseType.getUsername());
+				
+				databaseNames = Lists.newArrayList(new DatabaseName(null, "请先录入数据库地址", null));
+			}else {
+				databaseNames = databaseService.findDatabaseNameList(
+						database, sshService.findByConnection(connection));
+			}
+			model.addAttribute("databaseNames", databaseNames);
+		}else {
+			if(StringUtils.isEmpty(connection.getId())) {
+				database = new Database();
+				database.setUrl("localhost");
+				database.setPort(databaseType.getPort());
+				database.setUsername(databaseType.getUsername());
+			}
+		}
+		
+		model.addAttribute("database", database);
+
 		return "generator/database";
 	}
 
@@ -114,6 +129,15 @@ public class ConnectionController {
 	@ResponseBody
 	public String warpConnectionUrl(Database database) {
 		return DbUrlWarpper.warp(database.getType(), database.getUrl(), database.getPort(), database.getDatabaseName());
+	}
+	
+	/**
+	 * 包装数据库连接字符串
+	 * **/
+	@GetMapping("/database/getDatabaseTypeConfig/{dbType}")
+	@ResponseBody
+	public DatabaseType getDatabaseTypeConfig(@PathVariable String dbType) {
+		return DatabaseTypeConfig.getDatabaseType(dbType);
 	}
 	
 	/**

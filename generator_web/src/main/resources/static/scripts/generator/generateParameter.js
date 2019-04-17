@@ -14,6 +14,9 @@ $(document).ready(function(){
 	    	{field: 'view',title: '视图',formatter : function(value, row, index){return value ? "是" : "否";}}, 
 	    	{field: 'comment',title: '注释', searchable: true,
 	    		formatter: function(value, row, index){
+	    			if(!value){
+	    				return value;
+	    			}
 	    			return "<span style='display:block;overflow: hidden;text-overflow: ellipsis;overflow: hidden;white-space: nowrap;width: 149px;' title='" + value + "'>" + value + "</span>";
 	    		}
 	    	}

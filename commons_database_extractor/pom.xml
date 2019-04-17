@@ -44,7 +44,7 @@
             <artifactId>ojdbc6</artifactId>
             <version>11.2.0.4.0-atlassian-hosted</version>
             <scope>system</scope>
-            <systemPath>${basedir}/lib/ojdbc6-11.2.0.4.0-atlassian-hosted.jar</systemPath>
+            <systemPath>${basedir}/lib/ojdbc6-12.1.0.1-atlassian-hosted.jar</systemPath>
         </dependency>
         <!-- sqlserver -->
         <dependency>

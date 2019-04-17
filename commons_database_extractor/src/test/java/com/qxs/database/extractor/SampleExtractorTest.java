@@ -29,7 +29,7 @@ public class SampleExtractorTest {
 	@Autowired
 	private IExtractor extractor;
 	
-	@Test
+//	@Test
 	public void extractorTablesMysql() {
 		DruidDataSource dataSource = new DruidDataSource();
 		dataSource.setUrl("jdbc:mysql://211.159.174.152:10000/test?characterEncoding=UTF-8");
@@ -50,13 +50,13 @@ public class SampleExtractorTest {
 			}
 		}
 	}
-//	@Test
+	@Test
 	public void extractorTablesOracle() {
 		DruidDataSource dataSource = new DruidDataSource();
 
-		dataSource.setUrl("jdbc:oracle:thin:@172.28.34.33:1521:testdb");
-		dataSource.setUsername("loantest");
-		dataSource.setPassword("123456");
+		dataSource.setUrl("jdbc:oracle:thin:@172.20.109.110:1521:XE");
+		dataSource.setUsername("c##root");
+		dataSource.setPassword("root");
 		dataSource.setDriverClassName("oracle.jdbc.OracleDriver");
 		
 		List<Table> tables = extractor.extractorTables(dataSource);

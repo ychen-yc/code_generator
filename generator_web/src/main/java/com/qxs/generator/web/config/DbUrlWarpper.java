@@ -40,7 +40,7 @@ public final class DbUrlWarpper {
 	static {
 		URL_FORMAT.put("mariadb", "jdbc:mysql://${url}:${port}/${databaseName}?characterEncoding=UTF-8&serverTimezone=UTC");
 		URL_FORMAT.put("mysql", "jdbc:mysql://${url}:${port}/${databaseName}?characterEncoding=UTF-8&serverTimezone=UTC");
-		URL_FORMAT.put("oracle", "jdbc:oracle:thin:${url}:${port}:${databaseName}");
+		URL_FORMAT.put("oracle", "jdbc:oracle:thin:@${url}:${port}:${databaseName}");
 		URL_FORMAT.put("postgresql", "jdbc:postgresql://${url}:${port}/${databaseName}");
 		URL_FORMAT.put("sqlserver", "jdbc:sqlserver://${url}:${port};DatabaseName=${databaseName}");
 	}

@@ -77,7 +77,17 @@ public class DatabaseTypeConfig {
 				Node defaultDatabaseNameNode = ((NodeList) xPath.evaluate("defaultDatabaseName", dbTypeNode,XPathConstants.NODESET)).item(0);
 				String defaultDatabaseName = defaultDatabaseNameNode.getTextContent().trim();
 				
-				databaseTypeList.add(new DatabaseType(typeName,dbType, driver,Integer.valueOf(port), username, validSql, defaultDatabaseName));
+				Node databaseWidgetTypeNode = ((NodeList) xPath.evaluate("databaseWidgetType", dbTypeNode,XPathConstants.NODESET)).item(0);
+				String databaseWidgetType = databaseWidgetTypeNode.getTextContent().trim();
+				
+				WidgetType widgetType = WidgetType.valueOf(databaseWidgetType.toUpperCase().trim());
+				
+				Node databaseWidgetDescNode = ((NodeList) xPath.evaluate("databaseWidgetDesc", dbTypeNode,XPathConstants.NODESET)).item(0);
+				String databaseWidgetDesc = databaseWidgetDescNode.getTextContent().trim();
+				
+				databaseTypeList.add(
+						new DatabaseType(typeName,dbType, driver,Integer.valueOf(port), username, validSql, defaultDatabaseName, widgetType, databaseWidgetDesc)
+						);
 			}
 		} catch (XPathExpressionException e) {
 			LOGGER.error("字段数据类型配置文件读取失败",e);
@@ -149,11 +159,20 @@ public class DatabaseTypeConfig {
 		 * **/
 		private String validSql;
 		/**
-		 * 默认连接的数据库
+		 * 默认连接的数据库（mysql）
 		 * **/
 		private String defaultDatabaseName;
+		/**
+		 * 数据库字段控件类型
+		 * **/
+		private WidgetType databaseWidgetType;
+		/**
+		 * 数据库字段控件类型描述
+		 * **/
+		private String databaseWidgetDesc;
 		
-		public DatabaseType(String typeName,String dbType,String driver,int port,String username,String validSql,String defaultDatabaseName) {
+		public DatabaseType(String typeName,String dbType,String driver,int port,String username,String validSql,String defaultDatabaseName, 
+				WidgetType databaseWidgetType, String databaseWidgetDesc) {
 			this.dbType = dbType;
 			this.typeName = typeName;
 			this.driver = driver;
@@ -161,6 +180,8 @@ public class DatabaseTypeConfig {
 			this.username = username;
 			this.validSql = validSql;
 			this.defaultDatabaseName = defaultDatabaseName;
+			this.databaseWidgetType = databaseWidgetType;
+			this.databaseWidgetDesc = databaseWidgetDesc;
 		}
 		
 		public String getDbType() {
@@ -189,12 +210,24 @@ public class DatabaseTypeConfig {
 			return defaultDatabaseName;
 		}
 
+		public WidgetType getDatabaseWidgetType() {
+			return databaseWidgetType;
+		}
+
+		public String getDatabaseWidgetDesc() {
+			return databaseWidgetDesc;
+		}
+
 		@Override
 		public String toString() {
 			return "DatabaseType [dbType=" + dbType + ", typeName=" + typeName + ", driver=" + driver + ", port=" + port
 					+ ", username=" + username + ", validSql=" + validSql + ", defaultDatabaseName="
-					+ defaultDatabaseName + "]";
+					+ defaultDatabaseName + ", databaseWidgetType=" + databaseWidgetType + ", databaseWidgetDesc="
+					+ databaseWidgetDesc + "]";
 		}
-
+	}
+	
+	public enum WidgetType{
+		SELECT,INPUT;
 	}
 }

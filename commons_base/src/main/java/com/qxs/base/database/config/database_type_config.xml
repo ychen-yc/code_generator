@@ -7,6 +7,8 @@
 		<username>root</username>
 		<validSql>select 1</validSql>
 		<defaultDatabaseName>information_schema</defaultDatabaseName>
+		<databaseWidgetType>SELECT</databaseWidgetType>
+		<databaseWidgetDesc>数据库名：</databaseWidgetDesc>
 	</mysql>
 	<mariadb>
 		<typeName>MariaDB</typeName>
@@ -15,6 +17,8 @@
 		<username>root</username>
 		<validSql>select 1</validSql>
 		<defaultDatabaseName>information_schema</defaultDatabaseName>
+		<databaseWidgetType>SELECT</databaseWidgetType>
+		<databaseWidgetDesc>数据库名：</databaseWidgetDesc>
 	</mariadb>
 	<postgresql>
 		<typeName>PostgreSQL</typeName>
@@ -23,14 +27,18 @@
 		<username>postgres</username>
 		<validSql>select 1</validSql>
 		<defaultDatabaseName></defaultDatabaseName>
+		<databaseWidgetType>SELECT</databaseWidgetType>
+		<databaseWidgetDesc>数据库名：</databaseWidgetDesc>
 	</postgresql>
 	<oracle>
 		<typeName>Oracle</typeName>
 		<driver>oracle.jdbc.OracleDriver</driver>
 		<port>1521</port>
-		<username>ORCL</username>
+		<username></username>
 		<validSql>select 1 from dual</validSql>
-		<defaultDatabaseName></defaultDatabaseName>
+		<defaultDatabaseName>ORCL</defaultDatabaseName>
+		<databaseWidgetType>INPUT</databaseWidgetType>
+		<databaseWidgetDesc>服务名：</databaseWidgetDesc>
 	</oracle>
 	<sqlserver>
 		<typeName>SQLServer</typeName>
@@ -39,5 +47,7 @@
 		<username>sa</username>
 		<validSql>select 1</validSql>
 		<defaultDatabaseName></defaultDatabaseName>
+		<databaseWidgetType>SELECT</databaseWidgetType>
+		<databaseWidgetDesc>数据库名：</databaseWidgetDesc>
 	</sqlserver>
 </config>

@@ -4,26 +4,78 @@ var reloadConnectionUrl = function(){
 		$("p.connectionUrl").text(data);
 	});
 };
-//重新加载数据库select
-var reloadDatabases = function(){
-	if($("input[name='database.url']").val() && $("input[name='database.port']").val()){
-		$.post("/generator/connection/database/findDatabaseNameList",$("#generatorForm").serialize(),function(datas){
-			var select = $("select[name='database.databaseName']");
-			select.html("");
-			if(!datas || datas.length == 0){
-				select.append("<option>未查询到数据库信息</option>");
-				return;
-			}
-			for(var i = 0 , length = datas.length ; i < length ; i ++){
-				var data = datas[i];
-				select.append("<option value='" + data.database + "'>" + data.databaseName + "</option>");
-			}
-			
-			$("select[name='database.databaseName']").trigger("change");
-			
-			reloadConnectionUrl();
+
+var databaseNameReload = function(val){
+	reloadConnectionUrl();
+
+	$('#selectTableNameTable').bootstrapTable('removeAll');
+	//重新加载所有的表
+	if(val){
+		$.get("/generator/connection/findTables", $("#generatorForm").serialize(), function(data){
+			//重新加载表之前设置一个标识位
+			$("input[name='lodingTables']").val(1);
+
+			$('#selectTableNameTable').bootstrapTable('load',data);
 		});
 	}
+};
+
+//重新加载数据库select
+var reloadDatabases = function(){
+	//获取数据库类型，根据数据库类型画控件
+	$.get("/generator/connection/database/getDatabaseTypeConfig/" + $("#generatorForm select[name='database.type']").val(), function(d){
+		var databaseWidgetType = d.databaseWidgetType;
+		var databaseWidgetDesc = d.databaseWidgetDesc;
+		
+		$("div.database label").text(databaseWidgetDesc);
+		
+		if("SELECT" == databaseWidgetType){
+			if($("input[name='database.url']").val() && $("input[name='database.port']").val()){
+				$.post("/generator/connection/database/findDatabaseNameList",$("#generatorForm").serialize(),function(datas){
+					var select = "<select name='database.databaseName' class='form-control'>";
+					
+					if(!datas || datas.length == 0){
+						select = select + "<option>未查询到数据库信息</option>";
+						return;
+					}
+					for(var i = 0 , length = datas.length ; i < length ; i ++){
+						var data = datas[i];
+						select = select + "<option value='" + data.database + "'>" + data.databaseName + "</option>";
+					}
+					
+					select = select + "</select>";
+					
+					$("div.database div.widget").html(select);
+					
+					$("select[name='database.databaseName'],input[name='database.databaseName']").change(function(){
+						databaseNameReload($(this).val());
+					}).trigger("change");
+					
+					reloadConnectionUrl();
+				});
+			}
+			
+		}else if("INPUT" == databaseWidgetType){
+			$("div.database div.widget").html("<input name='database.databaseName' type='text' class='form-control' maxlength='255' placeholder='不能为空'/>");
+			
+			if(!$("input[name='database.databaseName']").val()){
+				var dbType = $("select[name='database.type']");
+				var opt = dbType.find("option[value='" + dbType.val() + "']");
+
+				if(opt.attr("_databaseWidgetType") == 'INPUT'){
+					$("input[name='database.databaseName']").val(opt.attr("_defaultDatabaseName"));
+				}
+				
+			}
+			$("select[name='database.databaseName'],input[name='database.databaseName']").change(function(){
+				databaseNameReload($(this).val());
+			}).trigger("change");
+			
+			reloadConnectionUrl();
+		}else{
+			throw "未知的类型：" + databaseWidgetType;
+		}
+	});
 };
 
 
@@ -121,7 +173,7 @@ $(document).ready(function(){
 		}
 		
 		//数据库名不能为空
-		if(!$("select[name='database.databaseName']").val()){
+		if(!$("select[name='database.databaseName']").val() && !$("input[name='database.databaseName']").val()){
 			$(".success").hide();
 			$(".alertMsg").text("数据库名不能为空");
 			$(".error,.alert-warning").show();

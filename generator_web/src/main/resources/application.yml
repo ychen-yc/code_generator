@@ -102,10 +102,10 @@ task:
 logging:
   file: logs/${spring.application.name}.log
   level:
-    root: DEBUG
+    root: INFO
     sun.rmi: ERROR
-    com: DEBUG
-    org: DEBUG
+    com: INFO
+    org: INFO 
     org.apache.tomcat: INFO
     org.apache.catalina.core: info
     org.springframework.core.env: info

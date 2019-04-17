@@ -8,6 +8,7 @@ $(document).ready(function(){
 		$("input[name='database.driver']").val(option.attr("_driver"));
 		$("input[name='database.port']").val(option.attr("_port"));
 		$("input[name='database.username']").val(option.attr("_username"));
+		$("input[name='database.password']").val("");
 		
 		reloadDatabases();
 		reloadConnectionUrl();
@@ -62,20 +63,10 @@ $(document).ready(function(){
 		}
 		reloadDatabases();
 	});
-	$("select[name='database.databaseName']").change(function(){
-		reloadConnectionUrl();
-
-		$('#selectTableNameTable').bootstrapTable('removeAll');
-		//重新加载所有的表
-		if($(this).val()){
-			$.get("/generator/connection/findTables", $("#generatorForm").serialize(), function(data){
-				//重新加载表之前设置一个标识位
-				$("input[name='lodingTables']").val(1);
-
-				$('#selectTableNameTable').bootstrapTable('load',data);
-			});
-		}
+	$("select[name='database.databaseName'],input[name='database.databaseName']").change(function(){
+		var option = $("select[name='database.type']").find("option[value='" + $("select[name='database.type']").val() + "']");
+		$("input[name='database.driver']").val(option.attr("_driver"));
 		
+		databaseNameReload($(this).val());
 	}).trigger("change");
-	
 });
