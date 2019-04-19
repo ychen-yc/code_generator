@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.qxs.database.dialect.AbstractDialect;
 import com.qxs.database.model.Column;
+import com.qxs.database.model.Database;
 import com.qxs.database.model.Table;
 
 /**
@@ -23,6 +24,10 @@ import com.qxs.database.model.Table;
 @Service("postgresqlDialect")
 public class PostgreSQLDialect extends AbstractDialect {
 	/**
+	 * 获取数据库sql文件名
+	 * **/
+	private static final String SQL_DATABASE_FILE_NAME = "database.sql";
+	/**
 	 * 获取所有的表名sql文件名
 	 * **/
 	private static final String SQL_ALL_TABLE_NAMES_FILE_NAME = "all_table_names.sql";
@@ -34,6 +39,10 @@ public class PostgreSQLDialect extends AbstractDialect {
 	 * 获取列信息sql文件名
 	 * **/
 	private static final String SQL_COLUMNS_FILE_NAME = "columns.sql";
+	/**
+	 * 获取数据库名信息sql
+	 * **/
+	private static final String SQL_DATABASE;
 	/**
 	 * 获取所有的表名sql
 	 * **/
@@ -48,9 +57,22 @@ public class PostgreSQLDialect extends AbstractDialect {
 	private static final String SQL_COLUMNS;
 	
 	static {
+		SQL_DATABASE = read(PostgreSQLDialect.class,SQL_DATABASE_FILE_NAME);
 		SQL_ALL_TABLE_NAMES = read(PostgreSQLDialect.class,SQL_ALL_TABLE_NAMES_FILE_NAME);
 		SQL_TABLE = read(PostgreSQLDialect.class,SQL_TABLE_FILE_NAME);
 		SQL_COLUMNS = read(PostgreSQLDialect.class,SQL_COLUMNS_FILE_NAME);
+	}
+	
+	@Override
+	public List<Database> getDatabases(Connection connection, String databaseVersion) throws SQLException {
+		SqlRunner sqlRunner = new SqlRunner(connection);
+		List<Map<String, Object>> list = sqlRunner.selectAll(SQL_DATABASE);
+		List<Database> databases = new ArrayList<Database>(list.size());
+		for(Map<String, Object> map : list) {
+			String databaseName = map.values().iterator().next().toString();
+			databases.add(new Database(databaseName, databaseName, null));
+		}
+		return databases;
 	}
 
 	@Override
