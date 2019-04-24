@@ -1,18 +1,23 @@
 
 $(document).ready(function(){
-	var handler = function (captchaObj) {
+	var notice = function(text){
 		var timeout = null;
-		var notice = function(text){
-			if(timeout != null){
-				window.clearTimeout(timeout);
-			}
-			$(".notice").show().removeClass("hide").text(text);
-			timeout = setTimeout(function () {
-                $(".notice").addClass("hide").hide().text("");
-            },5000);
-		};
+		if(timeout != null){
+			window.clearTimeout(timeout);
+		}
+		$(".notice").show().removeClass("hide").text(text);
+		timeout = setTimeout(function () {
+            $(".notice").addClass("hide").hide().text("");
+        },5000);
+	};
+	
+	$("input[type='button'].submit").click(function (e) {
+		notice("请先等验证码加载完毕");
+	});
+	var handler = function (captchaObj) {
+		$("input[type='button'].submit").unbind("click");
 		
-        $("input[type='submit']").click(function (e) {
+        $("input[type='button'].submit").click(function (e) {
         	//用户名不能为空
     		if(!$("input[name='username']").val()){
     			notice("用户名不能为空");
