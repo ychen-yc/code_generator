@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.qxs.generator.web.constant.Constants;
 import com.qxs.generator.web.exception.BusinessException;
 import com.qxs.generator.web.service.config.IGeetestService;
 
@@ -52,39 +54,48 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
 		if (!"POST".equals(request.getMethod())) {
 			throw new AuthenticationServiceException("Authentication method not supported: "+ request.getMethod());
 		}
-		
-		try{
-			geetestService.enhencedValidate();
-		}catch(BusinessException e){
-			request.getSession().setAttribute("loginErrorMessage", e.getMessage());
-			
-			try {
-				Field field = LogoutConfigurer.class.getField("logoutUrl");
-				if(!field.isAccessible()) {
-					field.setAccessible(true);
-				}
-				//退出url
-				String logoutUrl = field.get(logout).toString();
-				
-			    //退出认证中心
-				redirectStrategy.sendRedirect(request, response, logoutUrl);
-				
-			} catch (UnsupportedEncodingException e1) {
-				LOGGER.error(e1.getMessage(),e);
-			} catch (IOException e1) {
-				LOGGER.error(e1.getMessage(),e);
-			} catch (IllegalArgumentException e1) {
-				LOGGER.error(e1.getMessage(),e);
-			} catch (IllegalAccessException e1) {
-				LOGGER.error(e1.getMessage(),e);
-			} catch (NoSuchFieldException e1) {
-				LOGGER.error(e1.getMessage(),e);
-			} catch (SecurityException e1) {
-				LOGGER.error(e1.getMessage(),e);
-			}
-			
-			return null;
+		//如果需要校验验证码
+		HttpSession session = request.getSession();
+		Object errorNum = session.getAttribute(Constants.CAPTCHA_SESSION_ERROR_NUM_KEY);
+		if(errorNum == null) {
+			errorNum = 0;
+			session.setAttribute(Constants.CAPTCHA_SESSION_ERROR_NUM_KEY, errorNum);
 		}
+		if(((int)errorNum) >= Constants.CAPTCHA_ERROR_MAX_NUM) {
+			try{
+				geetestService.enhencedValidate();
+			}catch(BusinessException e){
+				request.getSession().setAttribute("loginErrorMessage", e.getMessage());
+				
+				try {
+					Field field = LogoutConfigurer.class.getField("logoutUrl");
+					if(!field.isAccessible()) {
+						field.setAccessible(true);
+					}
+					//退出url
+					String logoutUrl = field.get(logout).toString();
+					
+				    //退出认证中心
+					redirectStrategy.sendRedirect(request, response, logoutUrl);
+					
+				} catch (UnsupportedEncodingException e1) {
+					LOGGER.error(e1.getMessage(),e);
+				} catch (IOException e1) {
+					LOGGER.error(e1.getMessage(),e);
+				} catch (IllegalArgumentException e1) {
+					LOGGER.error(e1.getMessage(),e);
+				} catch (IllegalAccessException e1) {
+					LOGGER.error(e1.getMessage(),e);
+				} catch (NoSuchFieldException e1) {
+					LOGGER.error(e1.getMessage(),e);
+				} catch (SecurityException e1) {
+					LOGGER.error(e1.getMessage(),e);
+				}
+				
+				return null;
+			}
+		}
+		
 		return super.attemptAuthentication(request, response);
 	}
 

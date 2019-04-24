@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.qxs</groupId>
     <artifactId>mybatis_lombok</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
   </parent>
   <artifactId>generator_plugin_mybatis_lombok_dao</artifactId>
 

@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.qxs.generator.web.constant.Constants;
 import com.qxs.generator.web.model.user.User;
 import com.qxs.generator.web.service.log.ILoginService;
 
@@ -38,6 +40,10 @@ public class LoginSuccessHandler extends
 		
 		//记录登录id
 		user.setLoginLogId(loginId);
+		
+		//登录成功需要重置session中登记的错误次数信息
+		HttpSession session = request.getSession();
+		session.setAttribute(Constants.CAPTCHA_SESSION_ERROR_NUM_KEY, 0);
 		
 		super.onAuthenticationSuccess(request, response, authentication);
 	}

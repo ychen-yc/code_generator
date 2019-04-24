@@ -23,6 +23,7 @@ import org.springframework.security.config.annotation.web.configurers.FormLoginC
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
@@ -56,6 +57,8 @@ public class WebSecurityConfigurerAdapter extends org.springframework.security.c
 	private AntPathRequestMatcher[] csrfRequestMatchers = new AntPathRequestMatcher[] {
 			new AntPathRequestMatcher("/init/wizard/**")};
 	
+	private static final String loginPage = "/login";
+	
 	@Autowired
 	@Qualifier("dataSource")
 	protected DataSource dataSource;
@@ -71,6 +74,8 @@ public class WebSecurityConfigurerAdapter extends org.springframework.security.c
 	private LogoutSuccessHandler logoutSuccessHandler;
 	@Autowired
 	private AuthenticationSuccessHandler authenticationSuccessHandler;
+	@Autowired
+	private AuthenticationFailureHandler authenticationFailureHandler;
 
 	@Bean
 	public GenerateCodeSemaphoreFilter generateCodeSemaphoreFilter(){
@@ -107,7 +112,7 @@ public class WebSecurityConfigurerAdapter extends org.springframework.security.c
 		field.set(formLoginConfigurer, new CustomUsernamePasswordAuthenticationFilter(http.logout()));
 
 		//登录
-		http.formLogin().successHandler(authenticationSuccessHandler).loginPage("/login").permitAll();
+		http.formLogin().successHandler(authenticationSuccessHandler).failureHandler(authenticationFailureHandler).loginPage(loginPage).permitAll();
 		
 		http.rememberMe().tokenValiditySeconds(86400).tokenRepository(tokenRepository());
 		
@@ -126,6 +131,11 @@ public class WebSecurityConfigurerAdapter extends org.springframework.security.c
 				passwordEncoder());
 		// 不删除凭据，以便记住用户
 		auth.eraseCredentials(false);
+	}
+	
+	@Bean
+	public AuthenticationFailureHandler authenticationFailureHandler() {
+		return new LoginFailHandler(loginPage + "?error");
 	}
 	
 	@Bean
@@ -181,12 +191,4 @@ public class WebSecurityConfigurerAdapter extends org.springframework.security.c
 		return new SCryptPasswordEncoder();
 	}
 
-//	@Bean
-//	protected FilterRegistrationBean forwardedHeaderFilter() {
-//		FilterRegistrationBean filterRegBean = new FilterRegistrationBean();
-//		filterRegBean.setFilter(new ForwardedHeaderFilter());
-//		filterRegBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
-//		return filterRegBean;
-//	}
-	
 }

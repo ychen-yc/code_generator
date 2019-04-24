@@ -1,17 +1,14 @@
 package com.qxs.generator.web.constant;
 
-public enum Constants {
+public final class Constants {
 	
-	;
-	
-	private String code;
-	
-	private Constants(String code) {
-		this.code = code;
-	}
-
-	public String getCode() {
-		return code;
-	}
+	/**
+	 * 验证码错误次数在session中的key
+	 * **/
+	public static final String CAPTCHA_SESSION_ERROR_NUM_KEY = "captcha_session_error_num_key";
+	/**
+	 * 登录错误指定次数之后页面出现验证码
+	 * **/
+	public static final int CAPTCHA_ERROR_MAX_NUM = 3;
 	
 }
