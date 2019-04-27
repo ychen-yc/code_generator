@@ -297,8 +297,14 @@ $(document).ready(function(){
 			});
 		}
 	});
+	
+	var websocket = null;
 	//生成代码
 	$("button.generateCode").click(function(){
+		if(websocket != null){
+			$.alert("目前正在生成代码，请等待当前任务完成之后再生成代码");
+			return;
+		}
 		if(valid()){
 
 			//获取选择的插件列表
@@ -313,8 +319,8 @@ $(document).ready(function(){
 			delete params.btSelectItem;
 			
 			var host =  window.location.host;
-			var  wsServer = "ws://" + host + "/generator/generate"; 
-			var  websocket = new WebSocket(wsServer); 
+			var wsServer = "ws://" + host + "/generator/generate"; 
+			websocket = new WebSocket(wsServer); 
 			
 			var zip = new JSZip();
 			
@@ -375,6 +381,7 @@ $(document).ready(function(){
 				if($.isPlainObject(data) && data.status){
 					//关闭连接
 					websocket.close();
+					websocket = null;
 					//生成成功
 					if(data.status == 'SUCCESS'){
 						$(".successMsg").text("生成代码成功");
@@ -401,6 +408,7 @@ $(document).ready(function(){
 				console.error('连接服务器出错');
 				//连接服务器出错，关闭连接
 				websocket.close();
+				websocket = null;
 			}; 
 		}
 	});

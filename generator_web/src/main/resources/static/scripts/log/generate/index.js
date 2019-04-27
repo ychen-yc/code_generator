@@ -76,10 +76,15 @@ $(document).ready(function(){
 							var generateButton = $("<button type='button' class='btn btn-primary'>重新生成</button>");
 							modal.find("div.modal-footer").prepend(generateButton);
 							
+							var  websocket = null;
 							generateButton.click(function(){
+								if(websocket != null){
+									$.alert("目前正在生成代码，请等待当前任务完成之后再生成代码");
+									return;
+								}
 								var host =  window.location.host;
-								var  wsServer = "ws://" + host + "/log/generator/generate"; 
-								var  websocket = new WebSocket(wsServer); 
+								var wsServer = "ws://" + host + "/log/generator/generate"; 
+								websocket = new WebSocket(wsServer); 
 								
 								var zip = new JSZip();
 								
@@ -140,6 +145,7 @@ $(document).ready(function(){
 									if($.isPlainObject(data) && data.status){
 										//关闭连接
 										websocket.close();
+										websocket = null;
 										//生成成功
 										if(data.status == 'SUCCESS'){
 											$.alert("生成代码成功");
@@ -161,6 +167,7 @@ $(document).ready(function(){
 									console.error('连接服务器出错');
 									//连接服务器出错，关闭连接
 									websocket.close();
+									websocket = null;
 								}; 
 							});
 						},
