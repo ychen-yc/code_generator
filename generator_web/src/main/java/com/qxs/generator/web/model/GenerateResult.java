@@ -1,13 +1,6 @@
 package com.qxs.generator.web.model;
 
-import java.io.ByteArrayOutputStream;
-
-import javax.persistence.Transient;
-
 public class GenerateResult {
-
-	@Transient
-	private ByteArrayOutputStream outputStream;
 
 	private Status status;
 
@@ -17,23 +10,16 @@ public class GenerateResult {
 	public GenerateResult() {
 		super();
 	}
-	public GenerateResult(Status status, ByteArrayOutputStream outputStream) {
+	
+	public GenerateResult(Status status) {
 		super();
 		this.status = status;
-		this.outputStream = outputStream;
 	}
+	
 	public GenerateResult(Status status, String message) {
 		super();
 		this.status = status;
 		this.message = message;
-	}
-
-	public ByteArrayOutputStream getOutputStream() {
-		return outputStream;
-	}
-
-	public void setOutputStream(ByteArrayOutputStream outputStream) {
-		this.outputStream = outputStream;
 	}
 
 	public Status getStatus() {

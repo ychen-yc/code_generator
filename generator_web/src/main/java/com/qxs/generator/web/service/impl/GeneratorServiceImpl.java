@@ -1,26 +1,33 @@
 package com.qxs.generator.web.service.impl;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.BindException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.atomic.LongAdder;
 
 import javax.sql.DataSource;
 import javax.transaction.Transactional;
 
-import org.apache.tools.zip.ZipEntry;
-import org.apache.tools.zip.ZipOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.google.gson.Gson;
@@ -51,7 +58,6 @@ import com.qxs.generator.web.service.user.IUserService;
 import com.qxs.generator.web.util.DataSourceUtil;
 import com.qxs.generator.web.util.DateUtil;
 import com.qxs.generator.web.util.EncryptUtil;
-import com.qxs.generator.web.util.RequestUtil;
 import com.qxs.plugin.factory.generator.IGenerator;
 import com.qxs.plugin.factory.model.PluginConfig;
 
@@ -83,16 +89,14 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	
 	@Transactional
 	@Override
-	public GenerateResult generate(Database database, Ssh ssh,GenerateParameter generateParameter) {
-		return generate(database, ssh, generateParameter, true);
+	public GenerateResult generate(WebSocketSession session, Database database, Ssh ssh,GenerateParameter generateParameter) {
+		return generate(session, database, ssh, generateParameter, true);
 	}
 	
 	@Transactional
 	@Override
-	public GenerateResult generate(Database database, Ssh ssh,GenerateParameter generateParameter, boolean log) {
-		SecurityContext securityContext = SecurityContextHolder.getContext();
-		Authentication authentication = securityContext.getAuthentication();
-		User user = (User) authentication.getPrincipal();
+	public GenerateResult generate(WebSocketSession session, Database database, Ssh ssh,GenerateParameter generateParameter, boolean log) {
+		User user = (User)((UsernamePasswordAuthenticationToken) session.getPrincipal()).getPrincipal();
 		
 		//生成代码开始时间
 		String generateStartDate = DateUtil.currentDate();
@@ -103,8 +107,6 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		
 		List<String> registerBeanIds = new ArrayList<>();
 		DruidDataSource dataSource = DataSourceUtil.getDataSource(database);
-		
-		ByteArrayOutputStream byteArrayOutputStream = null;
 		
 		SshClient sshClient = null;
 		try {
@@ -171,7 +173,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 						}
 						
 						//登记日志
-						generateService.insert(new Generate(generateStartDate, DateUtil.currentDate(), 
+						generateService.insert(user, new Generate(generateStartDate, DateUtil.currentDate(), 
 								(System.currentTimeMillis() - generateStartTimeMillis) + "ms", 
 								gson.toJson(database), gson.toJson(ssh),gson.toJson(generateParameter), 
 								Generate.Status.FAIL.getStatus(), "插件“" + pluginName + "”不存在"));
@@ -191,7 +193,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 						}
 						
 						//登记日志
-						generateService.insert(new Generate(generateStartDate, DateUtil.currentDate(), 
+						generateService.insert(user, new Generate(generateStartDate, DateUtil.currentDate(), 
 								(System.currentTimeMillis() - generateStartTimeMillis) + "ms", 
 								gson.toJson(database), gson.toJson(ssh),gson.toJson(generateParameter), 
 								Generate.Status.FAIL.getStatus(), "插件“" + pluginName + "”不可用"));
@@ -251,7 +253,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 				pluginConfig.setGeneratorClass(generatorClass);
 				
 				//每个用户注册一个bean,避免多个用户之间bean互相注册,因为支持不同用户相同插件但是插件内容不一致
-				String beanId = String.format("%s_%s", RequestUtil.getRequest().getSession().getId(), generatorClass.getName());
+				String beanId = String.format("%s_%s", session.getId(), generatorClass.getName());
 				SpringBeanRegisterUtil.registerBean(beanId, generatorClass, applicationContext);
 				
 				pluginConfig.setGenerateBeanId(beanId);
@@ -265,7 +267,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 				registerBeanIds.add(beanId);
 			}
 			
-			byteArrayOutputStream = generateStream(dataSource, 
+			generateCodeFile(session, dataSource, 
 					pluginConfigs, generatePluginConfigs, 
 					generateParameter.getRemovePrefixs() == null ? null : generateParameter.getRemovePrefixs().split(","), 
 					generateParameter.getTableNames() == null ? null : generateParameter.getTableNames().split(","));
@@ -279,13 +281,13 @@ public class GeneratorServiceImpl implements IGeneratorService {
 				}
 				
 				//登记生成参数,支持重新生成
-				generateService.insert(new Generate(generateStartDate, DateUtil.currentDate(), 
+				generateService.insert(user, new Generate(generateStartDate, DateUtil.currentDate(), 
 						(System.currentTimeMillis() - generateStartTimeMillis) + "ms", 
 						gson.toJson(database), gson.toJson(ssh),gson.toJson(generateParameter), 
 						Generate.Status.SUCCESS.getStatus(),  null));
 			}
 			
-			return new GenerateResult(GenerateResult.Status.SUCCESS, byteArrayOutputStream);
+			return new GenerateResult(GenerateResult.Status.SUCCESS);
 		} catch (JSchException e) {
 			LOGGER.error(e.getMessage(),e);
 			if(log) {
@@ -298,7 +300,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 				}
 				
 				//登记日志
-				generateService.insert(new Generate(generateStartDate, DateUtil.currentDate(), 
+				generateService.insert(user, new Generate(generateStartDate, DateUtil.currentDate(), 
 						(System.currentTimeMillis() - generateStartTimeMillis) + "ms", 
 						gson.toJson(database), gson.toJson(ssh),gson.toJson(generateParameter), 
 						Generate.Status.FAIL.getStatus(),  "ssh服务器连接失败:"+e.getMessage()));
@@ -317,13 +319,16 @@ public class GeneratorServiceImpl implements IGeneratorService {
 				}
 				
 				//登记日志
-				generateService.insert(new Generate(generateStartDate, DateUtil.currentDate(), 
+				generateService.insert(user, new Generate(generateStartDate, DateUtil.currentDate(), 
 						(System.currentTimeMillis() - generateStartTimeMillis) + "ms", 
 						gson.toJson(database), gson.toJson(ssh),gson.toJson(generateParameter), 
 						Generate.Status.FAIL.getStatus(),  "ssh服务器创建隧道失败:"+e.getMessage()));
 			}
 			
 			return new GenerateResult(Status.FAIL, "ssh服务器创建隧道失败:"+e.getMessage());
+		} catch (IOException e) {
+			LOGGER.error(e.getMessage(),e);
+			return new GenerateResult(Status.FAIL, "向客户端发送消息失败:" + e.getMessage());
 		} finally {
 			if(sshClient != null) {
 				sshClient.disconnect();
@@ -338,7 +343,7 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	}
 	
 	/***
-	 * 生成代码方法(返回文件流,不直接生成zip文件)
+	 * 生成代码方法
 	 * 
 	 * @param dataSource 数据库连接信息
 	 * @param pluginConfigs 可生成代码的所有插件的配置信息
@@ -346,56 +351,51 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	 * @param removePrefixs 需要删除的前缀
 	 * @param tableNames 要生成的表名,如果为空则认为生成所有表
 	 * 
-	 * @return ByteArrayOutputStream zip文件流
 	 * **/
 	@SuppressWarnings("resource")
-	public ByteArrayOutputStream generateStream(DataSource dataSource, PluginConfig[] pluginConfigs,
-			List<PluginConfig> generatePluginConfigs,String[] removePrefixs,String... tableNames) {
+	public void generateCodeFile(WebSocketSession session, DataSource dataSource, PluginConfig[] pluginConfigs,
+			List<PluginConfig> generatePluginConfigs,String[] removePrefixs,String... tableNames) throws IOException{
 		Assert.notNull(dataSource, "dataSource参数不能为空");
 		Assert.notEmpty(pluginConfigs, "插件配置不能为空");
 		
 		//如果是超级用户则不根据用户进行过滤,直接查询所有可用的插件,否则查询该用户名下插件
-		SecurityContext securityContext = SecurityContextHolder.getContext();
-		Authentication authentication = securityContext.getAuthentication();
-		User user = (User) authentication.getPrincipal();
+		User user = (User)((UsernamePasswordAuthenticationToken) session.getPrincipal()).getPrincipal();
 		
 		//抽取所有表结构
 		List<Table> tables = extractor.extractorTables(dataSource, tableNames);
 		
 		Assert.notEmpty(tables,"未获取到表信息");
 		
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		//向客户端发送生成代码进度
+		session.sendMessage(new TextMessage(String.format("生成代码插件个数：%s 生成代码表个数：%s 总计要生成的代码文件个数：%s", 
+				generatePluginConfigs.size(), tables.size(), generatePluginConfigs.size() * tables.size())));
 		
-		ZipOutputStream zipStream = new ZipOutputStream(byteArrayOutputStream);
+		session.sendMessage(new TextMessage("{\"generateTotalNum\":" + generatePluginConfigs.size() * tables.size() + "}"));
 		
-		generatePluginConfigs.stream().forEach(pluginConfig -> {
+		//已经生成的个数
+		LongAdder generatedNum = new LongAdder();
+		
+		for(PluginConfig pluginConfig : generatePluginConfigs) {
 			IGenerator generator = (IGenerator) applicationContext.getBean(pluginConfig.getGenerateBeanId());
 			generator.setDataSource(dataSource);
 			generator.setAuthor(user.getName());
 			//生成代码
 			for(Table table : tables) {
 				
+				//当前已经生成的文件个数
+				try {
+					generatedNum.increment();
+					session.sendMessage(new TextMessage("{\"generatedNum\":" + generatedNum.intValue() + "}"));
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				
 				byte[] bytes = generator.generate(pluginConfigs,pluginConfig,table,removePrefixs, new ByteArrayInputStream(pluginConfig.getTemplateBytes()));
 				String fileRelativePath = generator.getFileRelativePath(table,pluginConfig,removePrefixs);
 				
-				ZipEntry ze = new ZipEntry(fileRelativePath);
-				try {
-					zipStream.putNextEntry(ze);
-					zipStream.write(bytes);
-				} catch (IOException e) {
-					LOGGER.error(e.getMessage(),e);
-				}
+				session.sendMessage(new TextMessage("file:" + fileRelativePath + ":content:" + new String(bytes)));
 			}
-		});
-		
-		try {
-			zipStream.flush();
-			zipStream.close();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
-
-		return byteArrayOutputStream;
 	}
 
 	@Override

@@ -1,5 +1,7 @@
 package com.qxs.generator.web.service;
 
+import org.springframework.web.socket.WebSocketSession;
+
 import com.qxs.generator.web.model.GenerateResult;
 import com.qxs.generator.web.model.connection.Database;
 import com.qxs.generator.web.model.connection.GenerateParameter;
@@ -17,7 +19,7 @@ public interface IGeneratorService {
 	 * @param ssh ssh配置信息
 	 * @param generateParameter 生成参数
 	 * **/
-	GenerateResult generate(Database database, Ssh ssh, GenerateParameter generateParameter);
+	GenerateResult generate(WebSocketSession session, Database database, Ssh ssh, GenerateParameter generateParameter);
 	/**
 	 * 生成代码
 	 * @param database 数据库配置信息
@@ -25,7 +27,7 @@ public interface IGeneratorService {
 	 * @param generateParameter 生成参数
 	 * @param log 是否登记生成日志(通过生成日志再次生成不登记日志)
 	 * **/
-	GenerateResult generate(Database database, Ssh ssh, GenerateParameter generateParameter, boolean log);
+	GenerateResult generate(WebSocketSession session, Database database, Ssh ssh, GenerateParameter generateParameter, boolean log);
 	/**
 	 * 取本地测试表生成代码样例
 	 * @param classContent 字节码

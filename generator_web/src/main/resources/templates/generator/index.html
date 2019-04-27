@@ -31,6 +31,7 @@
 		</div>
 	</div>
 	<form th:action="@{/generate}" method="post" class="form-horizontal" id="generatorForm" role="form" autocomplete="off">
+		<input name="generateTotalNum" type="hidden" />
 		<input name="connection.id" type="hidden" />
 		<input name="connection.connectionName" type="hidden" />
 		<input name="lodingTables" type="hidden" value="0"/>
@@ -41,6 +42,11 @@
 					<option th:each="connection : ${connections}" th:value="${connection.id}" th:text="${connection.connectionName}"></option>
 				</select>
 			</div>
+		</div>
+		<div class="progress progress-striped active" style="display: none;">
+		    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+		        <span class="sr-only">0% 完成</span>
+		    </div>
 		</div>
 		<p style="text-align: center;">
 			<button type="button" class="btn btn-default validConnection">测试链接</button>
@@ -81,6 +87,8 @@
 <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
 <script type="text/javascript" th:src="@{/webjars/bootstrap-table/dist/bootstrap-table.min.js}"></script>
 <script type="text/javascript" th:src="@{/webjars/bootstrap-table/dist/locale/bootstrap-table-zh-CN.min.js}"></script>
+<script type="text/javascript" th:src="@{/plugins/jszip/jszip.min.js}"></script>
+<script type="text/javascript" th:src="@{/plugins/jszip/FileSaver.js}"></script>
 <script type="text/javascript" th:src="@{/plugins/regexp/regexp.js}"></script>
 <script type="text/javascript" th:src="@{/plugins/file/jquery.fileDownload.js}"></script>
 <script type="text/javascript" th:src="@{/plugins/serialize.js}"></script>

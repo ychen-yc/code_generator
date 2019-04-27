@@ -77,19 +77,91 @@ $(document).ready(function(){
 							modal.find("div.modal-footer").prepend(generateButton);
 							
 							generateButton.click(function(){
-								$.fileDownload("/log/generate/generate", {
-									data:{id: button.attr("id"), "_csrf": window.top.$("meta[name='_csrf']").attr("content")},
-									httpMethod: 'POST',
-									prepareCallback: function(url){
-										console.debug("开始生成代码");
-									},
-									successCallback: function(url){
-										$.alert("生成代码成功");
-									},
-									failCallback: function(html, url, error){
-										$.alert("生成代码失败：" + (error ? ":" + error.message : ""));
-									},
-								});
+								var host =  window.location.host;
+								var  wsServer = "ws://" + host + "/log/generator/generate"; 
+								var  websocket = new WebSocket(wsServer); 
+								
+								var zip = new JSZip();
+								
+								websocket.onopen = function (evt) {
+									console.info("创建连接");
+									//添加状态判断，当为OPEN时，发送消息
+								    if (websocket.readyState===1) {
+								    	//向服务器端发送生成参数
+								    	websocket.send(button.attr("id"));
+								    }
+								    
+								    modal.find(".progress-striped").show();
+								}; 
+								websocket.onclose = function (evt) {
+									console.info("关闭连接");
+									
+									modal.find(".progress-striped").hide();
+									modal.find(".progress-bar").css("width", "0%");
+								}; 
+								websocket.onmessage = function (evt) {
+									var data = evt.data;
+									console.debug('收到服务器消息:' + data);
+									//如果接收到的信息是json且信息里包含status字段则认为生成代码结束，关闭连接
+									if(data){
+										try{
+											data = JSON.parse(data);
+										}catch(e){
+										}
+									}
+									//总数
+									if($.isPlainObject(data) && data.generateTotalNum){
+										modal.find("input[name='generateTotalNum']").val(data.generateTotalNum);
+									}
+									//更新进度
+									if($.isPlainObject(data) && data.generatedNum){
+										var rate = data.generatedNum / modal.find("input[name='generateTotalNum']").val();
+										//js计算存在精度问题，如果已经生成的数量等于要生成的总数量则把比例值为1
+										if(data.generatedNum == modal.find("input[name='generateTotalNum']").val()){
+											rate = 1;
+										}
+										console.log("当前进度：" + (rate.toFixed(2)) +" 总代码文件数：" + modal.find("input[name='generateTotalNum']").val() + "  当前是第" + data.generatedNum + "个文件");
+										
+										modal.find(".progress-bar").css("width", parseInt(rate * 100) + "%");
+									}
+									
+									//代码文件,代码文件转换json可能会出错，不使用转换json的方式
+									if(typeof(data) == 'string' && data.indexOf("file:") == 0){
+										var filePathIndex = data.indexOf(":", "file:".length);
+										filePath = data.substring("file:".length,filePathIndex);
+										
+										var contentIndex = data.indexOf(":", filePathIndex + 1);
+										var content = data.substring(contentIndex + 1);
+										
+										zip.file(filePath, content);
+									}
+									
+									//代码生成完毕关闭连接
+									if($.isPlainObject(data) && data.status){
+										//关闭连接
+										websocket.close();
+										//生成成功
+										if(data.status == 'SUCCESS'){
+											$.alert("生成代码成功");
+											//打包
+											zip.generateAsync({type:"blob"})
+											.then(function(content) {
+											    // see FileSaver.js
+												var date = new Date();
+											    saveAs(content, "code_" + date.getFullYear() + "_" + (date.getMonth() + 1) + "_" + date.getDate() + "_" + date.getHours() + "_" + date.getMinutes() + "_" + date.getSeconds() + ".zip");
+											});
+										}else{
+											//生成失败
+											$.alert("生成代码失败：" + data.message);
+										}
+									}
+									
+								}; 
+								websocket.onerror = function (evt) {
+									console.error('连接服务器出错');
+									//连接服务器出错，关闭连接
+									websocket.close();
+								}; 
 							});
 						},
 						modalVisibleCallback: function(modal){

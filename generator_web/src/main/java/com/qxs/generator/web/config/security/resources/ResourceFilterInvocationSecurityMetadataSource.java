@@ -42,6 +42,11 @@ public class ResourceFilterInvocationSecurityMetadataSource implements
 		FilterInvocation filterInvocation = (FilterInvocation) object;
 		HttpServletRequest request = filterInvocation.getRequest();
 		
+		//websocket请求
+		if("Upgrade".equalsIgnoreCase(request.getHeader("Connection")) && "websocket".equalsIgnoreCase(request.getHeader("Upgrade"))) {
+			return Lists.newArrayList(new SecurityConfig("ROLE_USER"));
+		}
+		
 		try {
 			HandlerExecutionChain handlerExecutionChain = requestMappingHandlerMapping.getHandler(request);
 			if (handlerExecutionChain == null){

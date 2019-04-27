@@ -2,8 +2,8 @@ package com.qxs.generator.web.service.log;
 
 import org.springframework.data.domain.Page;
 
-import com.qxs.generator.web.model.GenerateResult;
 import com.qxs.generator.web.model.log.Generate;
+import com.qxs.generator.web.model.user.User;
 
 /**
  * 生成代码日志
@@ -18,7 +18,7 @@ public interface IGenerateService {
 	 * @param generate 生成代码日志
 	 * @return int 日志id
 	 * **/
-	String insert(Generate generate);
+	String insert(User user,Generate generate);
 	/**
 	 * 根据id查询
 	 * @param id id
@@ -34,10 +34,4 @@ public interface IGenerateService {
 	 **/
 	Page<Generate> findList(String search, Integer offset, Integer limit, 
 			String sort, String order);
-	/**
-	 * 根据id重新生成代码
-	 * @param id id
-	 * @return GenerateResult
-	 * **/
-	GenerateResult generate(String id);
 }

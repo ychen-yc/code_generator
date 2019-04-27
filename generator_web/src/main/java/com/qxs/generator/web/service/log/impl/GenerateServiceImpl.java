@@ -28,16 +28,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.qxs.generator.web.exception.BusinessException;
-import com.qxs.generator.web.model.GenerateResult;
-import com.qxs.generator.web.model.connection.Database;
-import com.qxs.generator.web.model.connection.GenerateParameter;
-import com.qxs.generator.web.model.connection.Ssh;
 import com.qxs.generator.web.model.log.Generate;
 import com.qxs.generator.web.model.user.User;
 import com.qxs.generator.web.repository.log.IGenerateRepository;
-import com.qxs.generator.web.service.IGeneratorService;
 import com.qxs.generator.web.service.log.IGenerateService;
-import com.qxs.generator.web.util.EncryptUtil;
 
 @Service
 public class GenerateServiceImpl implements IGenerateService {
@@ -45,13 +39,10 @@ public class GenerateServiceImpl implements IGenerateService {
 	@Autowired
 	private IGenerateRepository generateRepository;
 	
-	@Autowired
-	private IGeneratorService generatorService;
-
 	@Transactional
 	@Override
-	public String insert(Generate generate) {
-		generate.setUserId(getUserId());
+	public String insert(User user,Generate generate) {
+		generate.setUserId(user.getId());
 		
 		return generateRepository.saveAndFlush(generate).getId();
 	}
@@ -122,30 +113,6 @@ public class GenerateServiceImpl implements IGenerateService {
 						}, pageable);
 	}
 	
-	@Override
-	public GenerateResult generate(String id) {
-		SecurityContext securityContext = SecurityContextHolder.getContext();
-		Authentication authentication = securityContext.getAuthentication();
-		User user = (User) authentication.getPrincipal();
-		
-		Generate generate = getById(id);
-		Gson gson = new Gson();
-		
-		Database database = gson.fromJson(generate.getGenerateParameterDatabase(), Database.class);
-		Ssh ssh = gson.fromJson(generate.getGenerateParameterSsh(), Ssh.class);
-		GenerateParameter generateParameter = gson.fromJson(generate.getGenerateParameterParameter(), GenerateParameter.class);
-		
-		//处理密码参数
-		if(StringUtils.hasLength(database.getPassword())) {
-			database.setPassword(EncryptUtil.desDecode(database.getPassword(), user.getId()));
-		}
-		if(ssh != null && StringUtils.hasLength(ssh.getPassword())) {
-			ssh.setPassword(EncryptUtil.desDecode(ssh.getPassword(), user.getId()));
-		}
-		
-		return generatorService.generate(database, ssh, generateParameter, false);
-	}
-
 	private String getUserId() {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 			
