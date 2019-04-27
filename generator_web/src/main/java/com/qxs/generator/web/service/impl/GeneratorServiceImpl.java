@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
 import javax.sql.DataSource;
@@ -86,6 +91,16 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	private IExtractor extractor;
 	@Autowired
 	private DataSource dataSource;
+	
+	/**
+	 * 生成代码线程数，
+	 * **/
+	private static ExecutorService CACHED_THREAD_POOL;
+	
+	static {
+		int processors = Runtime.getRuntime().availableProcessors();
+		CACHED_THREAD_POOL = new ThreadPoolExecutor(processors, processors * 2, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+	}
 	
 	@Transactional
 	@Override
@@ -352,7 +367,6 @@ public class GeneratorServiceImpl implements IGeneratorService {
 	 * @param tableNames 要生成的表名,如果为空则认为生成所有表
 	 * 
 	 * **/
-	@SuppressWarnings("resource")
 	public void generateCodeFile(WebSocketSession session, DataSource dataSource, PluginConfig[] pluginConfigs,
 			List<PluginConfig> generatePluginConfigs,String[] removePrefixs,String... tableNames) throws IOException{
 		Assert.notNull(dataSource, "dataSource参数不能为空");
@@ -375,6 +389,8 @@ public class GeneratorServiceImpl implements IGeneratorService {
 		//已经生成的个数
 		LongAdder generatedNum = new LongAdder();
 		
+		final CountDownLatch countDownLatch = new CountDownLatch(generatePluginConfigs.size() * tables.size());
+		
 		for(PluginConfig pluginConfig : generatePluginConfigs) {
 			IGenerator generator = (IGenerator) applicationContext.getBean(pluginConfig.getGenerateBeanId());
 			generator.setDataSource(dataSource);
@@ -382,19 +398,37 @@ public class GeneratorServiceImpl implements IGeneratorService {
 			//生成代码
 			for(Table table : tables) {
 				
-				//当前已经生成的文件个数
-				try {
-					generatedNum.increment();
-					session.sendMessage(new TextMessage("{\"generatedNum\":" + generatedNum.intValue() + "}"));
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				
-				byte[] bytes = generator.generate(pluginConfigs,pluginConfig,table,removePrefixs, new ByteArrayInputStream(pluginConfig.getTemplateBytes()));
-				String fileRelativePath = generator.getFileRelativePath(table,pluginConfig,removePrefixs);
-				
-				session.sendMessage(new TextMessage("file:" + fileRelativePath + ":content:" + new String(bytes)));
+				CACHED_THREAD_POOL.execute(new Runnable() {
+					@Override
+					public void run() {
+						//当前已经生成的文件个数
+						generatedNum.increment();
+						sendMessage(session, "{\"generatedNum\":" + generatedNum.intValue() + "}");
+
+						byte[] bytes = generator.generate(pluginConfigs,pluginConfig,table,removePrefixs, new ByteArrayInputStream(pluginConfig.getTemplateBytes()));
+						String fileRelativePath = generator.getFileRelativePath(table,pluginConfig,removePrefixs);
+						
+						sendMessage(session, "file:" + fileRelativePath + ":content:" + new String(bytes));
+						
+						countDownLatch.countDown();
+					}
+				});
 			}
+		}
+		
+		try {
+			countDownLatch.await();
+			System.out.println();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private synchronized void sendMessage(WebSocketSession session, String message) {
+		try {
+			session.sendMessage(new TextMessage(message));
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
