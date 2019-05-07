@@ -7,6 +7,9 @@ $(document).ready(function(){
 	    	{field: 'name',title: '插件名称'}, 
 	    	{field: 'description',title: '插件描述'}, 
 	    	{field: 'dependencies',title: '插件依赖', formatter: function (value, row, index) {
+	    			if(!value){
+	    				return null;
+	    			}
 					return "<span style='overflow: hidden;text-overflow:ellipsis;white-space: nowrap;width:100px;display: block;' title='" + value + "'>" + value + "</span>";
 				}
 			},
